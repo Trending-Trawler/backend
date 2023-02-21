@@ -1,0 +1,5 @@
+- implement usefull Endpoints
+- get Reddit Threads
+- get Bg videos
+- transform Thread text to speech
+- make a video out of this
