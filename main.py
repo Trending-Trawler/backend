@@ -13,6 +13,7 @@ async def root():
 async def reddit_thread_url(rt_url: str):
     return rt_url
 
+
 @app.get("/videoURL")
 async def video_url(yt_url: str):
     return yt_url
