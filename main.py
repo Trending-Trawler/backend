@@ -1,12 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-
-class Config(BaseModel):
-    rt_url: str
-    yt_url: str | None = None
-
-
 app = FastAPI()
 
 
@@ -15,9 +9,13 @@ async def root():
     return {"message": "Hello"}
 
 
-@app.post("/config")
-async def video_config(config: Config):
-    return config
+@app.get("/threadURL")
+async def reddit_thread_url(rt_url: str):
+    return rt_url
+
+@app.get("/videoURL")
+async def video_url(yt_url: str):
+    return yt_url
 
 
 @app.get("/downloadVideo")
