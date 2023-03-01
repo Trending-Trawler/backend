@@ -1,4 +1,5 @@
 fastapi
 uvicorn
-praw
+asyncpraw
 playwright
+python-dotenv
