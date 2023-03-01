@@ -49,6 +49,7 @@ async def make_thread_screenshots(
     H = 1920
 
     screenshot_num: int
+    screenshots = []
     async with async_playwright() as p:
         print("Launching Headless Browser...")
 
@@ -81,8 +82,8 @@ async def make_thread_screenshots(
         await page.goto("https://www.reddit.com" + reddit_thread.permalink, timeout=0)
         await page.set_viewport_size(ViewportSize(width=W, height=H))
 
-        await page.locator('[data-test-id="post-content"]').screenshot(
-            path=Path("../data/thread_previews/title.png")
+        screenshots.append(
+            await page.locator('[data-test-id="post-content"]').screenshot()
         )
 
         for idx, comment in enumerate(reddit_comments):
@@ -92,9 +93,7 @@ async def make_thread_screenshots(
             await page.goto(f"https://reddit.com{comment.permalink}", timeout=0)
 
             try:
-                await page.locator(f"#t1_{comment.id}").screenshot(
-                    path=Path(f"../data/thread_previews/{idx}.png")
-                )
+                screenshots.append(await page.locator(f"#t1_{comment.id}").screenshot())
             except TimeoutError:
                 print("TimeoutError: Skipping screenshot...")
                 continue
@@ -103,32 +102,25 @@ async def make_thread_screenshots(
         await browser.close()
 
     print("Screenshots downloaded Successfully.")
+    return screenshots
 
 
-def clean_dir():
-    try:
-        for file in glob.glob("../data/thread_previews/*.png"):
-            os.remove(file)
-    except Exception as e:
-        print(e)
-
-
-def zip_images():
+def zip_screenshots(screenshots):
     s = BytesIO()
     with zipfile.ZipFile(s, mode="w", compression=zipfile.ZIP_DEFLATED) as temp_zip:
-        for screenshot in glob.glob("../data/thread_previews/*.png"):
-            fdir, fname = os.path.split(screenshot)
-            temp_zip.write(screenshot, fname)
+        i = 0
+        for screenshot in screenshots:
+            temp_zip.writestr(f"thread_comment_{i}.png", BytesIO(screenshot).read())
+            i += 1
     return s.getvalue()
 
 
 async def create_screenshots(rt_url):
-    clean_dir()
     my_reddit = login()
     thread = await my_reddit.submission(url=rt_url)
     comments = get_comments(thread)
-    await make_thread_screenshots(thread, comments, 10)
-    return zip_images()
+    screenshots = await make_thread_screenshots(thread, comments, 10)
+    return zip_screenshots(screenshots)
 
 
 async def main():

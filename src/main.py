@@ -17,7 +17,6 @@ async def reddit_thread_url(url: str):
 
 @app.get("/preview/video")
 async def video_preview():
-    # should return images of reddit_thread_comments
     return True
 
 
