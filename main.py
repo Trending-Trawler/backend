@@ -1,24 +1,36 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi.responses import FileResponse
+
+import context
 
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello"}
-
-
-@app.get("/threadURL")
+@app.get("/thread")
 async def reddit_thread_url(rt_url: str):
-    return rt_url
+    # should return images of reddit_thread_comments
+    context.thread_url = rt_url
+    return True
 
 
-@app.get("/videoURL")
-async def video_url(yt_url: str):
-    return yt_url
+@app.get("/preview/video")
+async def video_preview():
+    # should return images of reddit_thread_comments
+    return True
 
 
-@app.get("/downloadVideo")
-async def download_video():
-    return "This is the video"
+@app.get("/preview/voice")
+async def voice_preview():
+    return True
+
+
+@app.post("/video")
+async def video_upload():
+    return True
+
+
+@app.get("/video")
+async def download_video(voice_id, thread_url: str | None = None, video_id: int | None = None):
+    # respond with a video file
+    print(context.thread_url, voice_id, video_id)
+    return FileResponse("final_video.mp4")
