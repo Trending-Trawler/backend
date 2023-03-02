@@ -1,10 +1,7 @@
-import glob
-import os
 import zipfile
 import asyncio
 from io import BytesIO
 import asyncpraw
-from praw.models import MoreComments
 import json
 from pathlib import Path
 from playwright.async_api import ViewportSize, async_playwright
@@ -32,7 +29,7 @@ def get_comments(thread_id):
     for top_level_comment in thread_id.comments:
         if len(comments) == topn:
             break
-        if isinstance(top_level_comment, MoreComments):
+        if isinstance(top_level_comment, asyncpraw.models.MoreComments):
             continue
         comments.append(top_level_comment)
 
