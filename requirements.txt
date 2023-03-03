@@ -3,3 +3,5 @@ uvicorn
 asyncpraw
 playwright
 python-dotenv
+requests
+playsound

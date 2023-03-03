@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     reddit_client_id: str = Field(..., env="REDDIT_CLIENT_ID")
     reddit_client_secret: SecretStr = Field(..., env="REDDIT_CLIENT_SECRET")
 
+    tiktok_session_id: str = Field(..., env="TIKTOK_SESSION_ID")
+
     class Config:
         env_file = "../.env"
         env_file_encoding = "utf-8"

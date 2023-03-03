@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import Response, FileResponse
-from config import settings
+
 from screenshots import create_screenshots
+from tts import tts
 
 app = FastAPI()
 
@@ -21,8 +22,12 @@ async def video_preview():
 
 
 @app.get("/preview/voice")
-async def voice_preview():
-    return True
+async def voice_preview(voice_id: str, text: str):
+    return Response(
+        tts(voice_id, text),
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": "attachment; filename=voice.mp3"},
+    )
 
 
 @app.post("/video")
@@ -32,7 +37,7 @@ async def video_upload():
 
 @app.get("/video")
 async def download_video(
-    voice_id, thread_url: str | None = None, video_id: int | None = None
+    voice_id: int, thread_url: str | None = None, video_id: int | None = None
 ):
     # respond with a video file
     print(thread_url, voice_id, video_id)
