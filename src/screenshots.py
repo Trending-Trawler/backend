@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from playwright.async_api import ViewportSize, async_playwright
 
-from config import settings
+from settings import settings
 
 
 def login():
@@ -98,7 +98,7 @@ async def make_thread_screenshots(
         # close browser instance when we are done using it
         await browser.close()
 
-    print("Screenshots downloaded Successfully.")
+    print("Screenshots made Successfully.")
     return screenshots
 
 

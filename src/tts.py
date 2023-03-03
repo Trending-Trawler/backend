@@ -4,7 +4,7 @@ import random
 import os
 import playsound
 
-from config import settings
+from settings import settings
 
 voices = [
     # DISNEY VOICES
