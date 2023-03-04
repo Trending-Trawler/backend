@@ -7,6 +7,7 @@ import playsound
 from settings import settings
 
 voices = [
+    "random",
     # DISNEY VOICES
     "en_us_ghostface",  # Ghost Face
     "en_us_chewbacca",  # Chewbacca
@@ -66,11 +67,11 @@ voices = [
 
 
 def tts(
-    text_speaker: str = None,
+    text_speaker: str = "random",
     req_text: str = "TikTok Text To Speech",
 ):
-    if text_speaker is None:
-        i = random.randint(0, len(voices))
+    if text_speaker == "random":
+        i = random.randint(1, len(voices))
         text_speaker = voices[i]
 
     req_text = req_text.replace("+", "plus")

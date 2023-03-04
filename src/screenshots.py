@@ -1,3 +1,4 @@
+import os
 import zipfile
 import asyncio
 from io import BytesIO
@@ -9,11 +10,11 @@ from playwright.async_api import ViewportSize, async_playwright
 from settings import settings
 
 
-def login():
+def login(reddit_id, reddit_secret):
     try:
         reddit = asyncpraw.Reddit(
-            client_id=settings.reddit_client_id,
-            client_secret=settings.reddit_client_secret.get_secret_value(),
+            client_id=reddit_id,
+            client_secret=reddit_secret,
             user_agent="ThreadTrawler",
         )
 
@@ -66,7 +67,10 @@ async def make_thread_screenshots(
         # set the theme and disable non-essential cookies
         if theme == "dark":
             cookie_file = open(
-                Path("../assets/cookie-dark-mode.json"), encoding="utf-8"
+                os.path.join(
+                    os.path.dirname(__file__), "../assets/cookie-dark-mode.json"
+                ),
+                encoding="utf-8",
             )
 
         cookies = json.load(cookie_file)
@@ -113,7 +117,9 @@ def zip_screenshots(screenshots):
 
 
 async def create_screenshots(rt_url):
-    my_reddit = login()
+    my_reddit = login(
+        settings.reddit_client_id, settings.reddit_client_secret.get_secret_value()
+    )
     thread = await my_reddit.submission(url=rt_url)
     comments = get_comments(thread)
     screenshots = await make_thread_screenshots(thread, comments, 10)
@@ -121,9 +127,7 @@ async def create_screenshots(rt_url):
 
 
 async def main():
-    await create_screenshots(
-        "https://www.reddit.com/r/StableDiffusion/comments/11ezysg/experimenting_with_darkness_illuminati_diffusion/"
-    )
+    await create_screenshots(settings.default_thread_url)
 
 
 if __name__ == "__main__":
