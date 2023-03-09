@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI, UploadFile, Depends
 from fastapi.responses import Response, FileResponse
 
-from screenshots import create_screenshots
+from screenshots import create_screenshots, zip_screenshots
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
 
@@ -14,7 +14,7 @@ app = FastAPI()
 @app.get("/thread")
 async def reddit_thread_url(thread_url: str = Depends(validate_thread)):
     response = Response(
-        await create_screenshots(thread_url),
+        zip_screenshots(await create_screenshots(thread_url)),
         media_type="application/x-zip-compressed",
         headers={"Content-Disposition": "attachment; filename=thread_comments.zip"},
     )
@@ -24,6 +24,12 @@ async def reddit_thread_url(thread_url: str = Depends(validate_thread)):
 
 @app.get("/preview/video")
 async def video_preview():
+    return True
+
+
+@app.get("/voices")
+async def voices():
+    # TODO: return voice_ids mapped to voice names
     return True
 
 
