@@ -122,8 +122,7 @@ async def create_screenshots(rt_url):
     )
     thread = await my_reddit.submission(url=rt_url)
     comments = get_comments(thread)
-    screenshots = await make_thread_screenshots(thread, comments, 10)
-    return zip_screenshots(screenshots)
+    return await make_thread_screenshots(thread, comments, 10)
 
 
 async def main():
