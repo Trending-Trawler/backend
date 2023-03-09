@@ -116,13 +116,13 @@ def zip_screenshots(screenshots):
     return s.getvalue()
 
 
-async def create_screenshots(rt_url):
+async def create_screenshots(rt_url, quantity: int = 10):
     my_reddit = login(
         settings.reddit_client_id, settings.reddit_client_secret.get_secret_value()
     )
     thread = await my_reddit.submission(url=rt_url)
     comments = get_comments(thread)
-    return await make_thread_screenshots(thread, comments, 10)
+    return await make_thread_screenshots(thread, comments, quantity)
 
 
 async def main():
