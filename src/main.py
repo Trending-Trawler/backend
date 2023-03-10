@@ -1,3 +1,4 @@
+import os
 import uvicorn
 
 from fastapi import FastAPI, UploadFile, Depends
@@ -6,7 +7,8 @@ from fastapi.responses import Response, FileResponse
 from screenshots import create_screenshots, zip_screenshots
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
-from videoCreation import make_final_video
+
+# from videoCreation import make_final_video
 
 app = FastAPI()
 
@@ -29,8 +31,9 @@ async def video_preview():
 
 @app.get("/voices")
 async def voices():
-    # TODO: return voice_ids mapped to voice names
-    return True
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "../assets/voices.json")
+    )
 
 
 @app.get("/preview/voice")
@@ -64,7 +67,7 @@ async def download_video(
     response.set_cookie(key="c_thread_url", value=thread_url)
     response.set_cookie(key="c_video_id", value=video_id)
 
-    make_final_video(thread_url, voice_id, video_id)
+    # make_final_video(thread_url, voice_id, video_id)
 
     print("Voice ID:", voice_id, "  Thread URL:", thread_url, "  Video ID:", video_id)
     return response

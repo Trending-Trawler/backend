@@ -6,6 +6,9 @@ import playsound
 
 from settings import settings
 
+# should contain same voices as in assets/voices.json
+# not vest solution but it is efficient and is enough for now
+# eventually we should have a database of voices as a single source of truth
 voices = [
     "random",
     # DISNEY VOICES
@@ -50,10 +53,10 @@ voices = [
     "kr_003",  # Korean - Female
     "kr_004",  # Korean - Male 2
     # SINGING VOICES
-    "en_female_f08_salut_damour"  # Alto
-    "en_male_m03_lobby"  # Tenor
-    "en_female_f08_warmy_breeze"  # Warmy Breeze
-    "en_male_m03_sunshine_soon"  # Sunshine Soon
+    "en_female_f08_salut_damour",  # Alto
+    "en_male_m03_lobby",  # Tenor
+    "en_female_f08_warmy_breeze",  # Warmy Breeze
+    "en_male_m03_sunshine_soon",  # Sunshine Soon
     # OTHER
     "en_male_narration",
     "en_male_funny",
