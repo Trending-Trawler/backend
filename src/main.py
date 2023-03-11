@@ -14,8 +14,8 @@ from validators import validate_thread, validate_voice, validate_video
 app = FastAPI()
 
 
-@app.get("/thread")
-async def reddit_thread_url(thread_url: str = Depends(validate_thread)):
+@app.get("/comments")
+async def comment_screenshots(thread_url: str = Depends(validate_thread)):
     response = Response(
         zip_screenshots(
             await create_screenshots(thread_url, await get_comments(thread_url))
@@ -27,11 +27,6 @@ async def reddit_thread_url(thread_url: str = Depends(validate_thread)):
     return response
 
 
-@app.get("/preview/video")
-async def video_preview():
-    return True
-
-
 @app.get("/voices")
 async def voices():
     return FileResponse(
@@ -39,7 +34,7 @@ async def voices():
     )
 
 
-@app.get("/preview/voice")
+@app.get("/voice/preview")
 async def voice_preview(
     voice_id: str = Depends(validate_voice),
     text: str = "Trending Trawler Text to Speech",
@@ -51,6 +46,12 @@ async def voice_preview(
     )
     response.set_cookie(key="c_voice_id", value=voice_id)
     return response
+
+
+@app.get("/video/preview")
+async def video_preview():
+    # TODO: return 2s previews of speedruns
+    return True
 
 
 @app.post("/video")
