@@ -50,8 +50,11 @@ async def voice_preview(
 
 @app.get("/video/preview")
 async def video_preview():
-    # TODO: return 2s previews of speedruns
-    return True
+    return FileResponse(
+        os.path.join(
+            os.path.dirname(__file__), "../assets/videos/preview/minecraft.zip"
+        )
+    )
 
 
 @app.post("/video")
