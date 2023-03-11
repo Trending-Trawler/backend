@@ -4,8 +4,8 @@ import uvicorn
 from fastapi import FastAPI, UploadFile, Depends
 from fastapi.responses import Response, FileResponse
 
-from rt_comments import get_rt_comments
-from rt_screenshots import create_rt_screenshots, zip_screenshots
+from comments import get_comments
+from screenshots import create_screenshots, zip_screenshots
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
 
@@ -18,7 +18,7 @@ app = FastAPI()
 async def reddit_thread_url(thread_url: str = Depends(validate_thread)):
     response = Response(
         zip_screenshots(
-            await create_rt_screenshots(thread_url, await get_rt_comments(thread_url))
+            await create_screenshots(thread_url, await get_comments(thread_url))
         ),
         media_type="application/x-zip-compressed",
         headers={"Content-Disposition": "attachment; filename=thread_comments.zip"},
@@ -71,8 +71,8 @@ async def download_video(
     response.set_cookie(key="c_video_id", value=video_id)
 
     # you get comment content with comment.body
-    comments = await get_rt_comments(thread_url)
-    screenshots = await create_rt_screenshots(thread_url, comments)
+    comments = await get_comments(thread_url)
+    screenshots = await create_screenshots(thread_url, comments)
 
     # make_final_video(thread_url, voice_id, video_id)
 

@@ -70,21 +70,21 @@ voices = [
 
 
 def tts(
-    text_speaker: str = "random",
-    req_text: str = "TikTok Text To Speech",
+    voice: str = "random",
+    text: str = "TikTok Text To Speech",
 ):
-    if text_speaker == "random":
+    if voice == "random":
         i = random.randint(1, len(voices))
-        text_speaker = voices[i]
+        voice = voices[i]
 
-    req_text = req_text.replace("+", "plus")
-    req_text = req_text.replace(" ", "+")
-    req_text = req_text.replace("&", "and")
+    text = text.replace("+", "plus")
+    text = text.replace(" ", "+")
+    text = text.replace("&", "and")
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
         "Cookie": f"sessionid={settings.tiktok_session_id};",
     }
-    url = f"https://tiktokv.com/media/api/text/speech/invoke/?text_speaker={text_speaker}&req_text={req_text}&speaker_map_type=0&aid=1233"
+    url = f"https://tiktokv.com/media/api/text/speech/invoke/?text_speaker={voice}&req_text={text}&speaker_map_type=0&aid=1233"
     r = requests.post(url, headers=headers)
 
     vstr = [r.json()["data"]["v_str"]][0]

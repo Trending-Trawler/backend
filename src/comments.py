@@ -32,9 +32,9 @@ def chose_comments(thread_id):
     return chosen_comments
 
 
-async def get_rt_comments(rt_url):
+async def get_comments(thread_url):
     reddit_client = login(
         settings.reddit_client_id, settings.reddit_client_secret.get_secret_value()
     )
-    thread_id = await reddit_client.submission(url=rt_url)
+    thread_id = await reddit_client.submission(url=thread_url)
     return chose_comments(thread_id)

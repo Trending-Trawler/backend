@@ -6,10 +6,9 @@ import json
 from playwright.async_api import ViewportSize, async_playwright
 
 from settings import settings
-from rt_comments import get_rt_comments
 
 
-async def create_rt_screenshots(rt_url, comments):
+async def create_screenshots(thread_url, comments):
     # settings values
     W = 1080
     H = 1920
@@ -43,7 +42,7 @@ async def create_rt_screenshots(rt_url, comments):
 
         # Get the thread screenshot
         page = await context.new_page()
-        await page.goto(rt_url, timeout=0)
+        await page.goto(thread_url, timeout=0)
         await page.set_viewport_size(ViewportSize(width=W, height=H))
 
         screenshots.append(
@@ -80,7 +79,7 @@ def zip_screenshots(screenshots):
 
 
 async def main():
-    await create_rt_screenshots(settings.default_thread_url)
+    await create_screenshots(settings.default_thread_url)
 
 
 if __name__ == "__main__":
