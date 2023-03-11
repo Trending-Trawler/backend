@@ -2,51 +2,18 @@ import os
 import zipfile
 import asyncio
 from io import BytesIO
-import asyncpraw
 import json
-from pathlib import Path
 from playwright.async_api import ViewportSize, async_playwright
 
 from settings import settings
+from rt_comments import get_rt_comments
 
 
-def login(reddit_id, reddit_secret):
-    try:
-        reddit = asyncpraw.Reddit(
-            client_id=reddit_id,
-            client_secret=reddit_secret,
-            user_agent="ThreadTrawler",
-        )
-
-        print("Logged in to Reddit successfully!")
-        return reddit
-    except Exception as e:
-        return e
-
-
-def get_comments(thread_id):
-    topn = 10
-    comments = []
-    for top_level_comment in thread_id.comments:
-        if len(comments) == topn:
-            break
-        if isinstance(top_level_comment, asyncpraw.models.MoreComments):
-            continue
-        comments.append(top_level_comment)
-
-    chosen_comments = comments
-    print(f"{len(chosen_comments)} comments are chosen")
-    return chosen_comments
-
-
-async def make_thread_screenshots(
-    reddit_thread, reddit_comments, screenshot_num: int, theme="dark"
-):
+async def create_rt_screenshots(rt_url, comments):
     # settings values
     W = 1080
     H = 1920
 
-    screenshot_num: int
     screenshots = []
     async with async_playwright() as p:
         print("Launching Headless Browser...")
@@ -64,14 +31,10 @@ async def make_thread_screenshots(
             viewport=ViewportSize(width=W, height=H),
             device_scale_factor=dsf,
         )
-        # set the theme and disable non-essential cookies
-        if theme == "dark":
-            cookie_file = open(
-                os.path.join(
-                    os.path.dirname(__file__), "../assets/cookie-dark-mode.json"
-                ),
-                encoding="utf-8",
-            )
+        cookie_file = open(
+            os.path.join(os.path.dirname(__file__), "../assets/cookie-dark-mode.json"),
+            encoding="utf-8",
+        )
 
         cookies = json.load(cookie_file)
         cookie_file.close()
@@ -80,14 +43,14 @@ async def make_thread_screenshots(
 
         # Get the thread screenshot
         page = await context.new_page()
-        await page.goto("https://www.reddit.com" + reddit_thread.permalink, timeout=0)
+        await page.goto(rt_url, timeout=0)
         await page.set_viewport_size(ViewportSize(width=W, height=H))
 
         screenshots.append(
             await page.locator('[data-test-id="post-content"]').screenshot()
         )
 
-        for idx, comment in enumerate(reddit_comments):
+        for i, comment in enumerate(comments):
             if await page.locator('[data-testid="content-gate"]').is_visible():
                 await page.locator('[data-testid="content-gate"] button').click()
 
@@ -116,17 +79,8 @@ def zip_screenshots(screenshots):
     return s.getvalue()
 
 
-async def create_screenshots(rt_url, quantity: int = 10):
-    my_reddit = login(
-        settings.reddit_client_id, settings.reddit_client_secret.get_secret_value()
-    )
-    thread = await my_reddit.submission(url=rt_url)
-    comments = get_comments(thread)
-    return await make_thread_screenshots(thread, comments, quantity)
-
-
 async def main():
-    await create_screenshots(settings.default_thread_url)
+    await create_rt_screenshots(settings.default_thread_url)
 
 
 if __name__ == "__main__":
