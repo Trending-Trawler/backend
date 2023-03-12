@@ -3,20 +3,33 @@ import uvicorn
 
 from fastapi import FastAPI, UploadFile, Depends
 from fastapi.responses import Response, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from comments import get_comments
 from screenshots import create_screenshots, zip_screenshots
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
-from videoCreation import prepare_background
-from io import BytesIO
-import zipfile
 
-
-
+# from io import BytesIO
+# import zipfile
+# from videoCreation import prepare_background
 # from videoCreation import make_final_video
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "https://trending-trawler.com",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/comments")
@@ -55,16 +68,21 @@ async def voice_preview(
 
 @app.get("/video/preview")
 async def video_preview():
-    samples = []
-    for i in range(6):
-        samples.append(prepare_background("minecraft.mp4", 3000))
-    s = BytesIO()
-    with zipfile.ZipFile(s, mode="w", compression=zipfile.ZIP_DEFLATED) as temp_zip:
-        i = 0
-        for sample in samples:
-            temp_zip.writestr(f"sample_video_{i}.mp4", BytesIO(sample).read())
-            i += 1
-    return s.getvalue()
+    # samples = []
+    # for i in range(6):
+    #     samples.append(prepare_background("minecraft.mp4", 3000))
+    # s = BytesIO()
+    # with zipfile.ZipFile(s, mode="w", compression=zipfile.ZIP_DEFLATED) as temp_zip:
+    #     i = 0
+    #     for sample in samples:
+    #         temp_zip.writestr(f"sample_video_{i}.mp4", BytesIO(sample).read())
+    #         i += 1
+    # return s.getvalue()
+    return FileResponse(
+        os.path.join(
+            os.path.dirname(__file__), "../assets/videos/preview/minecraft.zip"
+        )
+    )
 
 
 @app.post("/video")
