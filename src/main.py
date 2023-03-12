@@ -1,6 +1,4 @@
-import multiprocessing
 import os
-import zipfile
 
 import uvicorn
 
@@ -10,14 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from comments import get_comments
 from screenshots import create_screenshots, zip_screenshots
-from src.videoCreation import make_final_video
+from videoCreation import make_final_video
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
-
-# from io import BytesIO
-# import zipfile
-# from videoCreation import prepare_background
-# from videoCreation import make_final_video
 
 app = FastAPI()
 
@@ -70,22 +63,10 @@ async def voice_preview(
     return response
 
 
-@app.get("/video/preview")
+@app.get("/videos/preview")
 async def video_preview():
-    # samples = []
-    # for i in range(6):
-    #     samples.append(prepare_background("minecraft.mp4", 3000))
-    # s = BytesIO()
-    # with zipfile.ZipFile(s, mode="w", compression=zipfile.ZIP_DEFLATED) as temp_zip:
-    #     i = 0
-    #     for sample in samples:
-    #         temp_zip.writestr(f"sample_video_{i}.mp4", BytesIO(sample).read())
-    #         i += 1
-    # return s.getvalue()
     return FileResponse(
-        os.path.join(
-            os.path.dirname(__file__), "../assets/videos/preview/minecraft.zip"
-        )
+        os.path.join(os.path.dirname(__file__), "../assets/videos/preview/previews.zip")
     )
 
 
@@ -101,27 +82,17 @@ async def download_video(
     voice_id: str = Depends(validate_voice),
     video_id: str = Depends(validate_video),
 ):
-    response = FileResponse("final_video.mp4")
-    response.set_cookie(key="c_voice_id", value=voice_id)
-    response.set_cookie(key="c_thread_url", value=thread_url)
-    response.set_cookie(key="c_video_id", value=video_id)
+    # response = FileResponse(
+    #     os.path.join(os.path.dirname(__file__), f"../assets/result/video.mp4")
+    # )
+    # response.set_cookie(key="c_voice_id", value=voice_id)
+    # response.set_cookie(key="c_thread_url", value=thread_url)
+    # response.set_cookie(key="c_video_id", value=video_id)
 
-    final_video = await make_final_video(thread_url, voice_id, video_id)
-    final_video.write_videofile(
-        f"../assets/result/video.mp4",
-        fps=int(24),
-        audio_codec="aac",
-        audio_bitrate="192k",
-        threads=multiprocessing.cpu_count(),
-    )
-    final_video.close()
+    await make_final_video(thread_url, voice_id, video_id)
 
     print("Voice ID:", voice_id, "  Thread URL:", thread_url, "  Video ID:", video_id)
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), f"../assets/result/video.mp4")
-    )
-
-os.remove(f"../assets/result/video.mp4")
+    return FileResponse(os.path.join(os.path.dirname(__file__), f"../assets/video.mp4"))
 
 
 if __name__ == "__main__":

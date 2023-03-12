@@ -1,15 +1,7 @@
 import asyncio
 import os
-import re
+
 import multiprocessing
-from os.path import exists
-from typing import Tuple, Any, Final
-
-import playsound
-import shutil
-from typing import Tuple, Any
-from PIL import Image
-
 from operator import itemgetter
 from moviepy.audio.AudioClip import concatenate_audioclips, CompositeAudioClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -17,11 +9,9 @@ from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.io.VideoFileClip import VideoFileClip
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from moviepy.video.fx.resize import resize
 from moviepy.video.fx.crop import crop
 import random
-import time
 
 from tts import tts
 from screenshots import create_screenshots
@@ -30,7 +20,10 @@ from comments import get_comments, get_title
 
 def prepare_background(video_id, length, width=1080, height=1920):
     # path should be defined in config later
-    video = VideoFileClip(f"../assets/videos/full/{video_id}.mp4").without_audio()
+    video = VideoFileClip(
+        os.path.join(os.path.dirname(__file__), f"../assets/videos/full/{video_id}")
+    ).without_audio()
+
     vide_duration = video.duration
 
     random_start = random.randint(0, int(vide_duration))
@@ -38,9 +31,7 @@ def prepare_background(video_id, length, width=1080, height=1920):
     video.close()
 
     vid_resized = resize(vid, height=height)
-    clip = (
-        vid_resized
-    )
+    clip = vid_resized
     # calculate the center of the background clip
     c = clip.w // 2
 
@@ -89,16 +80,12 @@ async def audio_clip(thread_url, voice_id):
         "audio_comp": CompositeAudioClip([audio_concat]),
         "duration": duration,
         "comments": comments,
-        "comment_amount": comment_amount
+        "comment_amount": comment_amount,
     }
     return audio
 
 
-async def make_final_video(
-        thread_url,
-        voice_id,
-        video_id
-):
+async def make_final_video(thread_url, voice_id, video_id):
     # can be defined in config file later
     CONST_WIDTH: Final[int] = 1080
     CONST_HIGHT: Final[int] = 1920
@@ -106,12 +93,13 @@ async def make_final_video(
 
     # Gather all audio clips and duration
     audio = await audio_clip(thread_url, voice_id)
-    comments, index, duration, audio_composite, audio_clips = \
-        itemgetter("comments", "comment_amount", "duration", "audio_comp", "audio_clips")(audio)
+    comments, index, duration, audio_composite, audio_clips = itemgetter(
+        "comments", "comment_amount", "duration", "audio_comp", "audio_clips"
+    )(audio)
 
     # Gather all images
-    #while len(comments) > index:
-     #   comments.pop(len(comments) - 1)
+    # while len(comments) > index:
+    #   comments.pop(len(comments) - 1)
     image_list = await create_screenshots(thread_url, comments)
 
     print("Creating the final video 🎥")
@@ -125,34 +113,49 @@ async def make_final_video(
 
     image_clips = []
 
-
     for idx in range(index):
         image = image_list[idx]
         filename = f"image.jpeg"
         with open(filename, "wb") as out:
             out.write(image)
         print(audio_clips[idx].duration)
-        comment = ImageClip(f"./image.jpeg").set_duration(audio_clips[idx].duration).set_opacity(new_opacity).set_position(
-            "center")
-        resized_comment = resize(comment, width=screenshot_width)
-        image_clips.append(
-            resized_comment
+        comment = (
+            ImageClip(f"./image.jpeg")
+            .set_duration(audio_clips[idx].duration)
+            .set_opacity(new_opacity)
+            .set_position("center")
         )
+        resized_comment = resize(comment, width=screenshot_width)
+        image_clips.append(resized_comment)
         out.close()
         os.remove("./image.jpeg")
 
-    image_concat = concatenate_videoclips(image_clips)  # note transition kwarg for delay in imgs
+    image_concat = concatenate_videoclips(
+        image_clips
+    )  # note transition kwarg for delay in imgs
     image_concat.audio = audio_composite
     audio_composite.close()
     final = CompositeVideoClip([background_clip, image_concat.set_position("center")])
     image_concat.close()
 
+    final.write_videofile(
+        os.path.join(os.path.dirname(__file__), "../assets/video.mp4"),
+        fps=int(24),
+        audio_codec="aac",
+        audio_bitrate="192k",
+        threads=multiprocessing.cpu_count(),
+    )
+    final.close()
     return final
 
 
-
 async def main():
-    await make_final_video("https://www.reddit.com/r/AskReddit/comments/ablzuq/people_who_havent_pooped_in_2019_yet_why_are_you/", "en_au_001", "minecraft")
+    await make_final_video(
+        "https://www.reddit.com/r/AskReddit/comments/ablzuq/people_who_havent_pooped_in_2019_yet_why_are_you/",
+        "en_au_001",
+        "minecraft",
+    )
+
 
 if __name__ == "__main__":
     asyncio.run(main())
