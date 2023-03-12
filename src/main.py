@@ -8,6 +8,11 @@ from comments import get_comments
 from screenshots import create_screenshots, zip_screenshots
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
+from videoCreation import prepare_background
+from io import BytesIO
+import zipfile
+
+
 
 # from videoCreation import make_final_video
 
@@ -50,11 +55,16 @@ async def voice_preview(
 
 @app.get("/video/preview")
 async def video_preview():
-    return FileResponse(
-        os.path.join(
-            os.path.dirname(__file__), "../assets/videos/preview/minecraft.zip"
-        )
-    )
+    samples = []
+    for i in range(6):
+        samples.append(prepare_background("minecraft.mp4", 3000))
+    s = BytesIO()
+    with zipfile.ZipFile(s, mode="w", compression=zipfile.ZIP_DEFLATED) as temp_zip:
+        i = 0
+        for sample in samples:
+            temp_zip.writestr(f"sample_video_{i}.mp4", BytesIO(sample).read())
+            i += 1
+    return s.getvalue()
 
 
 @app.post("/video")
@@ -85,4 +95,4 @@ async def download_video(
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, proxy_headers=True, reload=True)

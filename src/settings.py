@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         "https://www.reddit.com/r/AskReddit/comments/ablzuq/people_who_havent_pooped_in_2019_yet_why_are_you/",
         env="DEFAULT_THREAD_URL",
     )
-    default_video_id: str = Field("default.mp4", env="DEFAULT_VIDEO_ID")
+    default_video_id: str = Field("minecraft.mp4", env="DEFAULT_VIDEO_ID")
 
     class Config:
         env_file = os.path.join(os.path.dirname(__file__), "../.env")
