@@ -1,4 +1,7 @@
+import multiprocessing
 import os
+import zipfile
+
 import uvicorn
 
 from fastapi import FastAPI, UploadFile, Depends
@@ -7,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from comments import get_comments
 from screenshots import create_screenshots, zip_screenshots
+from src.videoCreation import make_final_video
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
 
@@ -102,14 +106,22 @@ async def download_video(
     response.set_cookie(key="c_thread_url", value=thread_url)
     response.set_cookie(key="c_video_id", value=video_id)
 
-    # you get comment content with comment.body
-    comments = await get_comments(thread_url)
-    screenshots = await create_screenshots(thread_url, comments)
-
-    # make_final_video(thread_url, voice_id, video_id)
+    final_video = await make_final_video(thread_url, voice_id, video_id)
+    final_video.write_videofile(
+        f"../assets/result/video.mp4",
+        fps=int(24),
+        audio_codec="aac",
+        audio_bitrate="192k",
+        threads=multiprocessing.cpu_count(),
+    )
+    final_video.close()
 
     print("Voice ID:", voice_id, "  Thread URL:", thread_url, "  Video ID:", video_id)
-    return response
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), f"../assets/result/video.mp4")
+    )
+
+os.remove(f"../assets/result/video.mp4")
 
 
 if __name__ == "__main__":
