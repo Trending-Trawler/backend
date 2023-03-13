@@ -1,5 +1,7 @@
 import asyncio
 import os
+from io import BytesIO
+from tempfile import TemporaryFile
 
 import multiprocessing
 from operator import itemgetter
@@ -15,7 +17,8 @@ import random
 
 from tts import tts
 from screenshots import create_screenshots
-from comments import get_comments, get_title
+from comments import get_comments
+from settings import settings
 
 
 def prepare_background(video_id, length, width=1080, height=1920):
@@ -44,8 +47,7 @@ def prepare_background(video_id, length, width=1080, height=1920):
 
 
 async def audio_clip(thread_url, voice_id):
-    comments = await get_comments(thread_url)
-    title = await get_title(thread_url)
+    comments, title = await get_comments(thread_url)
     audio_list = []
     duration = 0
     comment_amount = 0
@@ -59,7 +61,7 @@ async def audio_clip(thread_url, voice_id):
     out.close()
     os.remove("voice.mp3")
     for comment in comments:
-        if duration > 6000:
+        if duration > 2000:
             break
         comment_amount = comment_amount + 1
         b64d_audio = tts(voice_id, comment.body)
@@ -85,10 +87,10 @@ async def audio_clip(thread_url, voice_id):
     return audio
 
 
-async def make_final_video(thread_url, voice_id, video_id):
+async def create_final_video(thread_url, voice_id, video_id):
     # can be defined in config file later
-    CONST_WIDTH: Final[int] = 1080
-    CONST_HIGHT: Final[int] = 1920
+    CONST_WIDTH = 1080
+    CONST_HIGHT = 1920
     opacity = 0.95
 
     # Gather all audio clips and duration
@@ -97,10 +99,7 @@ async def make_final_video(thread_url, voice_id, video_id):
         "comments", "comment_amount", "duration", "audio_comp", "audio_clips"
     )(audio)
 
-    # Gather all images
-    # while len(comments) > index:
-    #   comments.pop(len(comments) - 1)
-    image_list = await create_screenshots(thread_url, comments)
+    screenshots = await create_screenshots(thread_url, comments)
 
     print("Creating the final video 🎥")
     background_clip = prepare_background(video_id, duration, CONST_WIDTH, CONST_HIGHT)
@@ -113,15 +112,15 @@ async def make_final_video(thread_url, voice_id, video_id):
 
     image_clips = []
 
-    for idx in range(index):
-        image = image_list[idx]
-        filename = f"image.jpeg"
+    for i in range(index):
+        image = screenshots[i]
+        filename = "image.jpeg"
         with open(filename, "wb") as out:
             out.write(image)
-        print(audio_clips[idx].duration)
+        print(audio_clips[i].duration)
         comment = (
-            ImageClip(f"./image.jpeg")
-            .set_duration(audio_clips[idx].duration)
+            ImageClip("./image.jpeg")
+            .set_duration(audio_clips[i].duration)
             .set_opacity(new_opacity)
             .set_position("center")
         )
@@ -139,21 +138,20 @@ async def make_final_video(thread_url, voice_id, video_id):
     image_concat.close()
 
     final.write_videofile(
-        os.path.join(os.path.dirname(__file__), "../assets/video.mp4"),
+        os.path.join(os.path.dirname(__file__), "../assets/final.mp4"),
         fps=int(24),
         audio_codec="aac",
         audio_bitrate="192k",
         threads=multiprocessing.cpu_count(),
     )
     final.close()
-    return final
 
 
 async def main():
-    await make_final_video(
-        "https://www.reddit.com/r/AskReddit/comments/ablzuq/people_who_havent_pooped_in_2019_yet_why_are_you/",
-        "en_au_001",
-        "minecraft",
+    await create_final_video(
+        settings.reddit_thread_url,
+        settings.voice_id,
+        settings.video_id,
     )
 
 

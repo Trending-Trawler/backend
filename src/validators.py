@@ -1,10 +1,11 @@
+from typing import Union
 from fastapi import HTTPException, Cookie
 from tts import voices
 from settings import settings
 
 
 async def validate_thread(
-    thread_url: str | None = None,
+    thread_url: Union[str, None] = None,
     c_thread_url: str = Cookie(default=settings.default_thread_url),
 ):
     if not thread_url:
@@ -18,7 +19,7 @@ async def validate_thread(
 
 
 async def validate_voice(
-    voice_id: str | None = None,
+    voice_id: Union[str, None] = None,
     c_voice_id: str = Cookie(default=settings.default_voice_id),
 ):
     if not voice_id:
@@ -29,7 +30,7 @@ async def validate_voice(
 
 
 async def validate_video(
-    video_id: str | None = None,
+    video_id: Union[str, None] = None,
     c_video_id: str = Cookie(default=settings.default_video_id),
 ):
     if not video_id:

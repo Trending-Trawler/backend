@@ -74,7 +74,7 @@ def tts(
     text: str = "TikTok Text To Speech",
 ):
     if voice == "random":
-        i = random.randint(1, len(voices))
+        i = random.randint(1, len(voices) - 1)
         voice = voices[i]
 
     text = text.replace("+", "plus")

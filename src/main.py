@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from comments import get_comments
 from screenshots import create_screenshots, zip_screenshots
-from videoCreation import make_final_video
+from videoCreation import create_final_video
 from tts import tts
 from validators import validate_thread, validate_voice, validate_video
 
@@ -18,6 +18,7 @@ origins = [
     "http://localhost:3000",
     "https://localhost:3000",
     "https://trending-trawler.com",
+    "*",
 ]
 
 app.add_middleware(
@@ -31,10 +32,10 @@ app.add_middleware(
 
 @app.get("/comments")
 async def comment_screenshots(thread_url: str = Depends(validate_thread)):
+    comments, _ = await get_comments(thread_url)
+    screenshots = await create_screenshots(thread_url, comments)
     response = Response(
-        zip_screenshots(
-            await create_screenshots(thread_url, await get_comments(thread_url))
-        ),
+        zip_screenshots(screenshots),
         media_type="application/x-zip-compressed",
         headers={"Content-Disposition": "attachment; filename=thread_comments.zip"},
     )
@@ -54,8 +55,9 @@ async def voice_preview(
     voice_id: str = Depends(validate_voice),
     text: str = "Trending Trawler Text to Speech",
 ):
+    tts_audio = tts(voice_id, text)
     response = Response(
-        tts(voice_id, text),
+        tts_audio,
         media_type="audio/mpeg",
         headers={"Content-Disposition": "attachment; filename=voice.mp3"},
     )
@@ -82,17 +84,16 @@ async def download_video(
     voice_id: str = Depends(validate_voice),
     video_id: str = Depends(validate_video),
 ):
-    # response = FileResponse(
-    #     os.path.join(os.path.dirname(__file__), f"../assets/result/video.mp4")
-    # )
-    # response.set_cookie(key="c_voice_id", value=voice_id)
-    # response.set_cookie(key="c_thread_url", value=thread_url)
-    # response.set_cookie(key="c_video_id", value=video_id)
-
-    await make_final_video(thread_url, voice_id, video_id)
+    await create_final_video(thread_url, voice_id, video_id)
+    response = FileResponse(
+        os.path.join(os.path.dirname(__file__), "../assets/final.mp4")
+    )
+    response.set_cookie(key="c_voice_id", value=voice_id)
+    response.set_cookie(key="c_thread_url", value=thread_url)
+    response.set_cookie(key="c_video_id", value=video_id)
 
     print("Voice ID:", voice_id, "  Thread URL:", thread_url, "  Video ID:", video_id)
-    return FileResponse(os.path.join(os.path.dirname(__file__), f"../assets/video.mp4"))
+    return response
 
 
 if __name__ == "__main__":

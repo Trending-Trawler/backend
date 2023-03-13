@@ -80,16 +80,18 @@
       "Indonesian": [{ "id": "id_001", "name": "Siti" }]
     }
   ],
-  "disney": {
-    "American": [
-      { "id": "en_us_ghostface", "name": "Ghostface" },
-      { "id": "en_us_chewbacca", "name": "Chewbacca" },
-      { "id": "en_us_c3po", "name": "C3PO" },
-      { "id": "en_us_stitch", "name": "Stitch" },
-      { "id": "en_us_stormtrooper", "name": "Stormtrooper" },
-      { "id": "en_us_rocket", "name": "Rocket" },
-      { "id": "en_male_pirate", "name": "Pirate" },
-      { "id": "en_female_madam_leota", "name": "Madame Leota" }
-    ]
-  }
+  "disney": [
+    {
+      "American": [
+        { "id": "en_us_ghostface", "name": "Ghostface" },
+        { "id": "en_us_chewbacca", "name": "Chewbacca" },
+        { "id": "en_us_c3po", "name": "C3PO" },
+        { "id": "en_us_stitch", "name": "Stitch" },
+        { "id": "en_us_stormtrooper", "name": "Stormtrooper" },
+        { "id": "en_us_rocket", "name": "Rocket" },
+        { "id": "en_male_pirate", "name": "Pirate" },
+        { "id": "en_female_madam_leota", "name": "Madame Leota" }
+      ]
+    }
+  ]
 }
