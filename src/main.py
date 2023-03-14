@@ -18,7 +18,6 @@ origins = [
     "http://localhost:3000",
     "https://localhost:3000",
     "https://trending-trawler.com",
-    "*",
 ]
 
 app.add_middleware(
@@ -83,7 +82,7 @@ async def download_video(
     video_id: str = Depends(validate_video),
 ):
     await websocket.accept()
-    # await create_final_video(thread_url, voice_id, video_id)
+    await create_final_video(thread_url, voice_id, video_id)
 
     while True:
         data = await websocket.receive_text()
