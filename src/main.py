@@ -1,6 +1,6 @@
-import os
-
 import uvicorn
+
+from starlette.websockets import WebSocket
 
 from fastapi import FastAPI, UploadFile, Depends
 from fastapi.responses import Response, FileResponse
@@ -32,6 +32,7 @@ app.add_middleware(
 
 @app.get("/comments")
 async def comment_screenshots(thread_url: str = Depends(validate_thread)):
+    print(thread_url)
     comments, _ = await get_comments(thread_url)
     screenshots = await create_screenshots(thread_url, comments)
     response = Response(
@@ -45,9 +46,7 @@ async def comment_screenshots(thread_url: str = Depends(validate_thread)):
 
 @app.get("/voices")
 async def voices():
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), "../assets/voices.json")
-    )
+    return FileResponse("assets/voices.json")
 
 
 @app.get("/voice/preview")
@@ -67,9 +66,7 @@ async def voice_preview(
 
 @app.get("/videos/preview")
 async def video_preview():
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), "../assets/videos/preview/previews.zip")
-    )
+    return FileResponse("assets/videos/preview/previews.zip")
 
 
 @app.post("/video")
@@ -78,22 +75,23 @@ async def video_upload(video: UploadFile, response: Response):
     return True
 
 
-@app.get("/video")
+@app.websocket("/video")
 async def download_video(
+    websocket: WebSocket,
     thread_url: str = Depends(validate_thread),
     voice_id: str = Depends(validate_voice),
     video_id: str = Depends(validate_video),
 ):
-    await create_final_video(thread_url, voice_id, video_id)
-    response = FileResponse(
-        os.path.join(os.path.dirname(__file__), "../assets/final.mp4")
-    )
-    response.set_cookie(key="c_voice_id", value=voice_id)
-    response.set_cookie(key="c_thread_url", value=thread_url)
-    response.set_cookie(key="c_video_id", value=video_id)
+    await websocket.accept()
+    # await create_final_video(thread_url, voice_id, video_id)
 
-    print("Voice ID:", voice_id, "  Thread URL:", thread_url, "  Video ID:", video_id)
-    return response
+    while True:
+        data = await websocket.receive_text()
+        if data == "download":
+            with open("assets/final.mp4", "rb") as f:
+                final_video = f.read()
+            # send file over websocket
+            await websocket.send_bytes(final_video)
 
 
 if __name__ == "__main__":

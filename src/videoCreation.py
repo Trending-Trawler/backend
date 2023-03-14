@@ -23,9 +23,7 @@ from settings import settings
 
 def prepare_background(video_id, length, width=1080, height=1920):
     # path should be defined in config later
-    video = VideoFileClip(
-        os.path.join(os.path.dirname(__file__), f"../assets/videos/full/{video_id}")
-    ).without_audio()
+    video = VideoFileClip(f"../assets/videos/full/{video_id}").without_audio()
 
     vide_duration = video.duration
 
@@ -138,7 +136,7 @@ async def create_final_video(thread_url, voice_id, video_id):
     image_concat.close()
 
     final.write_videofile(
-        os.path.join(os.path.dirname(__file__), "../assets/final.mp4"),
+        "assets/final.mp4",
         fps=int(24),
         audio_codec="aac",
         audio_bitrate="192k",

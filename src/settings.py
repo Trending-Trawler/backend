@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     default_video_id: str = Field("minecraft1.mp4", env="DEFAULT_VIDEO_ID")
 
     class Config:
-        env_file = os.path.join(os.path.dirname(__file__), "../.env")
+        env_file = ".env"
         env_file_encoding = "utf-8"
 
 

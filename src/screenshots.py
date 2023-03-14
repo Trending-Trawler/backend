@@ -31,7 +31,7 @@ async def create_screenshots(thread_url, comments):
             device_scale_factor=dsf,
         )
         cookie_file = open(
-            os.path.join(os.path.dirname(__file__), "../assets/cookie-dark-mode.json"),
+            "../assets/cookie-dark-mode.json",
             encoding="utf-8",
         )
 
