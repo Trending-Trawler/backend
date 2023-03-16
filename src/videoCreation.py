@@ -23,7 +23,7 @@ from settings import settings
 
 def prepare_background(video_id, length, width=1080, height=1920):
     # path should be defined in config later
-    video = VideoFileClip(f"../assets/videos/full/{video_id}").without_audio()
+    video = VideoFileClip(f"assets/videos/full/{video_id}").without_audio()
 
     vide_duration = video.duration
 

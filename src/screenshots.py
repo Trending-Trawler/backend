@@ -3,7 +3,7 @@ import zipfile
 import asyncio
 from io import BytesIO
 import json
-from playwright.async_api import ViewportSize, async_playwright
+from playwright.async_api import ViewportSize, async_playwright, TimeoutError
 
 from settings import settings
 
@@ -37,29 +37,32 @@ async def create_screenshots(thread_url, comments):
 
         cookies = json.load(cookie_file)
         cookie_file.close()
-
         await context.add_cookies(cookies)  # load preference cookies
 
         # Get the thread screenshot
         page = await context.new_page()
         await page.goto(thread_url, timeout=0)
         await page.set_viewport_size(ViewportSize(width=W, height=H))
+        print("Taking Thread screenshot...")
 
-        screenshots.append(
-            await page.locator('[data-test-id="post-content"]').screenshot()
-        )
+        try:
+            screenshots.append(
+                await page.locator('[data-test-id="post-content"]').screenshot()
+            )
+        except TimeoutError:
+            print("TimeoutError: Skipping Title screenshot...")
 
         for i, comment in enumerate(comments):
+            print(f"Taking Comment {i} screenshot...")
             if await page.locator('[data-testid="content-gate"]').is_visible():
                 await page.locator('[data-testid="content-gate"] button').click()
 
-            await page.goto(f"https://reddit.com{comment.permalink}", timeout=0)
-
             try:
+                await page.goto(f"https://reddit.com{comment.permalink}", timeout=0)
+                # await page.wait_for_selector(f"#t1_{comment.id}", state="visible")
                 screenshots.append(await page.locator(f"#t1_{comment.id}").screenshot())
             except TimeoutError:
-                print("TimeoutError: Skipping screenshot...")
-                continue
+                print(f"TimeoutError: Skipping {i} screenshot...")
 
         # close browser instance when we are done using it
         await browser.close()

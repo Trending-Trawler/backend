@@ -1,10 +1,10 @@
 import uvicorn
 
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketDisconnect
+from starlette.middleware.cors import CORSMiddleware
 
 from fastapi import FastAPI, UploadFile, Depends
 from fastapi.responses import Response, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 
 from comments import get_comments
 from screenshots import create_screenshots, zip_screenshots
@@ -36,7 +36,7 @@ async def comment_screenshots(thread_url: str = Depends(validate_thread)):
     screenshots = await create_screenshots(thread_url, comments)
     response = Response(
         zip_screenshots(screenshots),
-        media_type="application/x-zip-compressed",
+        media_type="application/zip",
         headers={"Content-Disposition": "attachment; filename=thread_comments.zip"},
     )
     response.set_cookie(key="c_thread_url", value=thread_url)
@@ -82,16 +82,26 @@ async def download_video(
     video_id: str = Depends(validate_video),
 ):
     await websocket.accept()
-    await create_final_video(thread_url, voice_id, video_id)
-
-    while True:
-        data = await websocket.receive_text()
-        if data == "download":
-            with open("assets/final.mp4", "rb") as f:
-                final_video = f.read()
-            # send file over websocket
-            await websocket.send_bytes(final_video)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            print(data)
+            if data == "download":
+                await create_final_video(thread_url, voice_id, video_id)
+                with open("assets/final.mp4", "rb") as f:
+                    final_video = f.read()
+                # send file over websocket
+                await websocket.send_bytes(final_video)
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, proxy_headers=True, reload=True)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        proxy_headers=True,
+        reload=True,
+        ws_max_size=100 * 1024 * 1024,
+    )
