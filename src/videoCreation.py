@@ -110,7 +110,7 @@ async def create_final_video(thread_url, voice_id, video_id):
 
     image_clips = []
 
-    for i in range(index):
+    for i in range(len(comments) + 1):
         image = screenshots[i]
         filename = "image.jpeg"
         with open(filename, "wb") as out:
